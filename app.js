@@ -18,7 +18,7 @@
   const ORIGINS = {
     "Delhi, India": "southasia", "Mumbai, India": "southasia", "Bengaluru, India": "southasia",
     "Dubai, UAE": "mideast", "Singapore": "seasia", "Tokyo, Japan": "eastasia",
-    "London, UK": "europe", "Paris, France": "europe",
+    "London, UK": "europe",
     "New York, USA": "northam", "San Francisco, USA": "northam", "Toronto, Canada": "northam",
     "Sydney, Australia": "oceania",
     "Hanoi, Vietnam": "seasia", "Ho Chi Minh City, Vietnam": "seasia", "Manila, Philippines": "seasia",
