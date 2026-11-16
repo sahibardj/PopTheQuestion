@@ -36,7 +36,28 @@
   const DEST_REGION = { Japan: "eastasia", India: "southasia", Canada: "northam", USA: "northam", Greece: "europe", Switzerland: "europe", France: "europe", Italy: "europe", Norway: "europe", Slovenia: "europe", Vietnam: "seasia", Philippines: "seasia", Azerbaijan: "mideast", Jordan: "mideast" };
   // Flights for two, round trip, from the chosen starting point.
   const flightFor = (d) => 2 * FARES[ORIGINS[state.origin]][DEST_REGION[d.country]];
-  const totalFor = (d) => [d.budget[0] + flightFor(d), d.budget[1] + flightFor(d)];
+  const flightRange = (d) => [Math.round(flightFor(d) * 0.85), Math.round(flightFor(d) * 1.25)];
+  const totalFor = (d) => [d.budget[0] + flightRange(d)[0], d.budget[1] + flightRange(d)[1]];
+  // Split of the on-the-ground budget for ~5 nights for two.
+  const SPLIT = [["Stay", 0.55], ["Food & drinks", 0.25], ["Local transport & activities", 0.2]];
+
+  function breakdownHtml(d) {
+    const [fl, fh] = flightRange(d);
+    const [tl, th] = totalFor(d);
+    const row = (label, lo, hi, note = "") =>
+      `<tr><td>${label}${note ? `<small>${note}</small>` : ""}</td><td>${money(lo)} – ${money(hi)}</td></tr>`;
+    const stayNight = [(d.budget[0] * 0.55) / 5, (d.budget[1] * 0.55) / 5];
+    const extras = d.ideas.map((i) => i.budget);
+    return `<table class="breakdown">
+      <thead><tr><th>Rough estimate for two</th><th>Range</th></tr></thead>
+      <tbody>
+        ${row("Flights", fl, fh, `Round trip from ${esc(state.origin)}`)}
+        ${SPLIT.map(([l, p], i) => row(l, d.budget[0] * p, d.budget[1] * p, i === 0 ? `5 nights, about ${money(stayNight[0])} – ${money(stayNight[1])} per night` : "")).join("")}
+      </tbody>
+      <tfoot><tr><td>Total trip</td><td>${money(tl)} – ${money(th)}</td></tr></tfoot>
+    </table>
+    <p class="bd-note">Proposal setup is extra: ${money(Math.min(...extras))} – ${money(Math.max(...extras))} depending on the idea you pick. Estimates only; check live prices before booking.</p>`;
+  }
   const state = {
     sel: { months: new Set(), weather: new Set(), season: new Set(), scenery: new Set(), hike: new Set(), continent: new Set(), country: new Set() },
     maxBudget: BUDGET_MAX,
@@ -389,10 +410,11 @@
           <p class="blurb">${esc(d.blurb)}</p>
           <div>
             <div class="bigbudget">${money(totalFor(d)[0])} – ${money(totalFor(d)[1])}</div>
-            <small>For two · ~5 nights · incl. ~${money(flightFor(d))} flights from ${esc(state.origin)}</small>
+            <small>For two · ~5 nights · incl. flights from ${esc(state.origin)}</small>
           </div>
         </div>
-        <div class="tags" style="margin-bottom:14px">
+        ${breakdownHtml(d)}
+        <div class="tags" style="margin:14px 0">
           ${d.weather.map((w) => `<span class="tag">${esc(labelFor("weather", w))}</span>`).join("")}
           ${d.seasons.map((s) => `<span class="tag">${esc(labelFor("season", s))}</span>`).join("")}
           ${d.scenery.map((s) => `<span class="tag gold">${esc(labelFor("scenery", s))}</span>`).join("")}
@@ -612,6 +634,13 @@
       const card = e.target.closest(".card");
       if (card) location.hash = card.dataset.id;
     };
+    // Always open vendor/map links in a new tab, even if the default anchor behaviour is blocked.
+    $("#board").addEventListener("click", (e) => {
+      const link = e.target.closest("a[target=_blank]");
+      if (!link) return;
+      e.preventDefault();
+      window.open(link.href, "_blank", "noopener");
+    });
     $("#closeBoard").onclick = closeBoard;
     $("#board").onclick = (e) => e.target.id === "board" && closeBoard();
     window.addEventListener("hashchange", () => (currentBoardId() ? openBoard(currentBoardId()) : closeBoard()));
