@@ -4,16 +4,16 @@
 // hike: "none" | "easy" | "hard"
 
 window.VENDORS = {
-  ring: { label: "Ring & jewellers", search: "jewelry store" },
+  ring: { label: "Ring & jewellers", search: "jewellery store" },
   flowers: { label: "Flowers", search: "florist" },
-  photographer: { label: "Photographer", search: "proposal photographer" },
+  photographer: { label: "Photographer", search: "photographer" },
   dinner: { label: "Romantic dinner", search: "romantic restaurant" },
-  decor: { label: "Decor & setup", search: "event decorator" },
-  music: { label: "Live music", search: "live musician for events" },
-  boat: { label: "Boat / cruise", search: "private boat tour" },
+  decor: { label: "Decor & setup", search: "event decorators" },
+  music: { label: "Live music", search: "live music" },
+  boat: { label: "Boat / cruise", search: "boat tours" },
   stay: { label: "Special stay", search: "romantic hotel" },
   cake: { label: "Cake & dessert", search: "cake shop" },
-  attire: { label: "Outfit rental", search: "traditional outfit rental" },
+  attire: { label: "Outfit rental", search: "traditional clothing rental" },
   guide: { label: "Local guide", search: "private tour guide" },
   champagne: { label: "Champagne", search: "wine shop" },
 };

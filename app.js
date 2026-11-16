@@ -11,11 +11,34 @@
   const stripHtml = (html) => new DOMParser().parseFromString(html || "", "text/html").body.textContent.trim();
 
   // ---------------- State ----------------
-  const BUDGET_MIN = 500;
-  const BUDGET_MAX = Math.ceil(Math.max(...D.map((d) => d.budget[0])) / 500) * 500;
+  const BUDGET_MIN = 1000;
+  const BUDGET_MAX = 15000;
+
+  // Starting points and rough round-trip economy fares per person (USD) between world regions.
+  const ORIGINS = {
+    "Delhi, India": "southasia", "Mumbai, India": "southasia", "Bengaluru, India": "southasia",
+    "Dubai, UAE": "mideast", "Singapore": "seasia", "Tokyo, Japan": "eastasia",
+    "London, UK": "europe", "Paris, France": "europe",
+    "New York, USA": "northam", "San Francisco, USA": "northam", "Toronto, Canada": "northam",
+    "Sydney, Australia": "oceania",
+  };
+  const FARES = {
+    southasia: { southasia: 120, eastasia: 650, northam: 1300, europe: 750 },
+    seasia: { southasia: 400, eastasia: 500, northam: 1200, europe: 900 },
+    eastasia: { southasia: 650, eastasia: 150, northam: 1000, europe: 1000 },
+    mideast: { southasia: 300, eastasia: 800, northam: 1300, europe: 500 },
+    europe: { southasia: 700, eastasia: 950, northam: 750, europe: 150 },
+    northam: { southasia: 1300, eastasia: 1000, northam: 250, europe: 700 },
+    oceania: { southasia: 1000, eastasia: 900, northam: 1400, europe: 1600 },
+  };
+  const DEST_REGION = { Japan: "eastasia", India: "southasia", Canada: "northam", USA: "northam", Greece: "europe", Switzerland: "europe", France: "europe", Italy: "europe" };
+  // Flights for two, round trip, from the chosen starting point.
+  const flightFor = (d) => 2 * FARES[ORIGINS[state.origin]][DEST_REGION[d.country]];
+  const totalFor = (d) => [d.budget[0] + flightFor(d), d.budget[1] + flightFor(d)];
   const state = {
     sel: { months: new Set(), weather: new Set(), season: new Set(), scenery: new Set(), hike: new Set(), continent: new Set(), country: new Set() },
     maxBudget: BUDGET_MAX,
+    origin: ORIGINS[localStorage.getItem("ptq-origin")] ? localStorage.getItem("ptq-origin") : "Delhi, India",
     sort: "featured",
     currency: localStorage.getItem("ptq-currency") || "USD",
     rates: { USD: 1, EUR: 0.92, GBP: 0.79, INR: 84, JPY: 150, CAD: 1.37, AUD: 1.52, AED: 3.67, SGD: 1.34, CHF: 0.88 },
@@ -28,6 +51,16 @@
       Math.round((usd * (state.rates[state.currency] || 1)) / roundTo()) * roundTo()
     );
   const roundTo = () => ((state.rates[state.currency] || 1) > 50 ? 100 : 10);
+
+  function initOrigin() {
+    const sel = $("#origin");
+    sel.innerHTML = Object.keys(ORIGINS).map((o) => `<option ${o === state.origin ? "selected" : ""}>${o}</option>`).join("");
+    sel.onchange = () => {
+      state.origin = sel.value;
+      localStorage.setItem("ptq-origin", sel.value);
+      refreshPrices();
+    };
+  }
 
   function initCurrency() {
     const sel = $("#currency");
@@ -171,7 +204,7 @@
     const s = state.sel;
     const any = (set, arr) => !set.size || arr.some((x) => set.has(x));
     return (
-      d.budget[0] <= state.maxBudget &&
+      totalFor(d)[0] <= state.maxBudget &&
       any(s.months, d.months) &&
       any(s.weather, d.weather) &&
       any(s.season, d.seasons) &&
@@ -198,8 +231,8 @@
       `<details class="fgroup" open>
         <summary>Budget for two</summary>
         <div class="range">
-          <input type="range" id="budget" min="${BUDGET_MIN}" max="${BUDGET_MAX}" step="100" value="${state.maxBudget}" />
-          <div class="val"><span>Trip starting under</span><b id="budgetLabel"></b></div>
+          <input type="range" id="budget" min="${BUDGET_MIN}" max="${BUDGET_MAX}" step="250" value="${state.maxBudget}" />
+          <div class="val"><span>Total trip (with flights) under</span><b id="budgetLabel"></b></div>
         </div>
       </details>` +
       groupHtml("months", "When you want to propose", MONTHS.map((m, i) => [i + 1, m]), true, true) +
@@ -304,7 +337,7 @@
       <div class="body">
         <h3>${esc(d.name)}</h3>
         <div class="loc">${esc(d.region)}, ${esc(d.country)}</div>
-        <div class="budget">${money(d.budget[0])} – ${money(d.budget[1])}</div>
+        <div class="budget">${money(totalFor(d)[0])} – ${money(totalFor(d)[1])}</div><div class="loc" style="margin:2px 0 0">incl. flights from ${esc(state.origin.split(",")[0])}</div>
         <div class="tags">${tags}<span class="tag gold">${d.ideas.length} ideas</span></div>
       </div>
     </button>`;
@@ -325,8 +358,7 @@
 
   // ---------------- Board ----------------
   const mapsLink = (vendorKey, d) =>
-    "https://www.google.com/maps/search/?api=1&query=" +
-    encodeURIComponent(`${V[vendorKey].search} near ${d.name}, ${d.region}, ${d.country}`);
+    "https://www.google.com/maps/search/" + encodeURIComponent(`${V[vendorKey].search} near ${d.name} ${d.country}`).replace(/%20/g, "+");
 
   const currentBoardId = () => decodeURIComponent(location.hash.slice(1));
 
@@ -349,8 +381,8 @@
         <div class="board-meta">
           <p class="blurb">${esc(d.blurb)}</p>
           <div>
-            <div class="bigbudget">${money(d.budget[0])} – ${money(d.budget[1])}</div>
-            <small>Trip for two · ~5 nights · excl. flights</small>
+            <div class="bigbudget">${money(totalFor(d)[0])} – ${money(totalFor(d)[1])}</div>
+            <small>For two · ~5 nights · incl. ~${money(flightFor(d))} flights from ${esc(state.origin)}</small>
           </div>
         </div>
         <div class="tags" style="margin-bottom:14px">
@@ -459,7 +491,7 @@
   let aiHistory = [];
 
   function systemPrompt() {
-    const catalog = D.map((d) => `${d.name} (${d.country}; best ${d.months.map((m) => MONTHS[m - 1]).join("/")}; trip ${money(d.budget[0])}-${money(d.budget[1])})`).join("; ");
+    const catalog = D.map((d) => `${d.name} (${d.country}; best ${d.months.map((m) => MONTHS[m - 1]).join("/")}; trip from ${state.origin} ${money(totalFor(d)[0])}-${money(totalFor(d)[1])} incl. flights)`).join("; ");
     let s =
       "You are a warm, practical marriage-proposal planner on the website 'Pop the Question'. " +
       "Keep answers under 180 words, use short markdown bullet points, and give concrete names, times and costs. " +
@@ -551,6 +583,7 @@
 
   function init() {
     initCurrency();
+    initOrigin();
     renderFilters();
     syncChips();
     renderGrid();

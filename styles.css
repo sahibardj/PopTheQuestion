@@ -273,3 +273,6 @@ body.filters-closed .filters { margin-left: calc(-1 * var(--panel)); }
   .board-content { padding: 20px 16px; }
   .monthbar span { font-size: 9px; }
 }
+
+.origin { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+@media (max-width: 860px) { .origin .from { display: none; } .origin select { max-width: 120px; } }
