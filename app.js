@@ -4,8 +4,7 @@
   const F = window.FILTERS;
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const HIKE_LABEL = Object.fromEntries(F.hike);
-  const AI_DAILY_CREDITS = 15;
-
+  
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const stripHtml = (html) => new DOMParser().parseFromString(html || "", "text/html").body.textContent.trim();
@@ -33,7 +32,7 @@
     northam: { southasia: 1300, seasia: 1200, mideast: 1100, eastasia: 1000, northam: 250, europe: 700 },
     oceania: { southasia: 1000, seasia: 500, mideast: 1500, eastasia: 900, northam: 1400, europe: 1600 },
   };
-  const DEST_REGION = { Japan: "eastasia", India: "southasia", Canada: "northam", USA: "northam", Greece: "europe", Switzerland: "europe", France: "europe", Italy: "europe", Norway: "europe", Slovenia: "europe", Vietnam: "seasia", Philippines: "seasia", Azerbaijan: "mideast", Jordan: "mideast" };
+  const DEST_REGION = { Japan: "eastasia", India: "southasia", Canada: "northam", USA: "northam", Greece: "europe", Switzerland: "europe", France: "europe", Italy: "europe", Norway: "europe", Sweden: "europe", Finland: "europe", Iceland: "europe", Slovenia: "europe", Vietnam: "seasia", Philippines: "seasia", Azerbaijan: "mideast", Jordan: "mideast" };
   // Flights for two, round trip, from the chosen starting point.
   const flightFor = (d) => 2 * FARES[ORIGINS[state.origin]][DEST_REGION[d.country]];
   const flightRange = (d) => [Math.round(flightFor(d) * 0.85), Math.round(flightFor(d) * 1.25)];
@@ -496,24 +495,12 @@
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   }
 
-  // ---------------- AI planner (free, keyless; daily credits per visitor) ----------------
-  const today = () => new Date().toISOString().slice(0, 10);
-  function credits() {
-    const c = JSON.parse(localStorage.getItem("ptq-ai") || "{}");
-    return c.date === today() ? AI_DAILY_CREDITS - c.used : AI_DAILY_CREDITS;
-  }
-  function useCredit() {
-    const c = JSON.parse(localStorage.getItem("ptq-ai") || "{}");
-    const used = c.date === today() ? c.used + 1 : 1;
-    localStorage.setItem("ptq-ai", JSON.stringify({ date: today(), used }));
-    renderCredits();
-  }
+  // ---------------- AI planner ----------------
+  // Powered by Puter.js: each visitor signs in to their own free Puter account and spends their own
+  // free AI credits, so the site owner pays nothing and needs no API key.
   function renderCredits() {
-    const n = credits();
-    $("#creditsPill").textContent = `${n} free`;
-    $("#aiNote").textContent = n > 0
-      ? `${n} of ${AI_DAILY_CREDITS} free AI credits left today. Credits reset daily.`
-      : "You've used today's free AI credits. Come back tomorrow!";
+    $("#creditsPill").textContent = "free";
+    $("#aiNote").textContent = "Free AI via Puter. You may be asked to sign in to your own free Puter account; the usage is on your free allowance, not ours.";
   }
 
   let aiCtx = null;
@@ -580,26 +567,23 @@
   async function ask(text) {
     text = text.trim();
     if (!text) return;
-    if (credits() <= 0) return addMsg("bot", "<p>You've used today's free AI credits. They reset tomorrow.</p>");
     addMsg("user", esc(text));
     aiHistory.push({ role: "user", content: text });
     const pending = addMsg("bot", '<span class="typing">Thinking</span>');
     try {
-      const res = await fetch("https://text.pollinations.ai/openai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "openai", messages: [{ role: "system", content: systemPrompt() }, ...aiHistory.slice(-8)] }),
-      });
-      if (!res.ok) throw new Error(res.status);
-      const j = await res.json();
-      const reply = j.choices?.[0]?.message?.content?.trim();
+      if (!window.puter?.ai) throw new Error("puter-missing");
+      const resp = await window.puter.ai.chat([{ role: "system", content: systemPrompt() }, ...aiHistory.slice(-8)], { model: "gpt-4o-mini" });
+      const c = resp?.message?.content ?? resp?.toString?.();
+      const reply = (Array.isArray(c) ? c.map((p) => p.text || "").join("") : String(c || "")).trim();
       if (!reply) throw new Error("empty");
       aiHistory.push({ role: "assistant", content: reply });
       pending.innerHTML = mdToHtml(reply);
-      useCredit();
-    } catch {
+    } catch (err) {
       aiHistory.pop();
-      pending.innerHTML = "<p>The free AI is busy right now. Please try again in a moment (no credit was used).</p>";
+      const msg = String(err?.message || err?.error?.message || "");
+      pending.innerHTML = /missing/.test(msg)
+        ? "<p>The AI helper couldn't load. Check your connection or ad-blocker and refresh.</p>"
+        : "<p>The AI didn't answer. If a sign-in window appeared, finish signing in to Puter (it's free) and ask again.</p>";
     }
     $("#aiLog").scrollTop = $("#aiLog").scrollHeight;
   }
