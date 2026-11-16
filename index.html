@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pop the Question · Proposal destination ideas</title>
+  <meta name="description" content="Pinterest-style boards of dreamy proposal destinations with budgets, seasons and nearby vendors." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="toggleFilters" aria-label="Toggle filters" title="Filters">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 5h18M6 12h12M10 19h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+    </button>
+    <a class="brand" href="./">
+      <svg class="ring" viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="20" r="8.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M11 9l5-5 5 5-5 3z" fill="currentColor"/></svg>
+      <span>Pop the Question</span>
+    </a>
+    <div class="topbar-right">
+      <label class="currency">
+        <span class="sr-only">Currency</span>
+        <select id="currency"></select>
+      </label>
+      <button class="btn btn-ai" id="openAi">
+        <span>Ask AI</span>
+        <span class="credits" id="creditsPill"></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="filters" id="filters">
+      <div class="filters-head">
+        <h2>Filters</h2>
+        <button class="link-btn" id="clearFilters">Clear all</button>
+      </div>
+      <div id="filterGroups"></div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+
+    <main class="content">
+      <section class="hero">
+        <h1>Where will you <em>pop the question?</em></h1>
+        <p>Dreamy proposal spots with budgets, the best months to go and the vendors you'll need nearby.</p>
+      </section>
+      <div class="toolbar">
+        <span id="resultCount"></span>
+        <label class="sort">Sort
+          <select id="sort">
+            <option value="featured">Featured</option>
+            <option value="budget-asc">Budget: low to high</option>
+            <option value="budget-desc">Budget: high to low</option>
+            <option value="name">Name</option>
+          </select>
+        </label>
+      </div>
+      <div class="activechips" id="activeChips"></div>
+      <div class="masonry" id="grid"></div>
+      <div class="empty" id="empty" hidden>
+        <p>No destinations match these filters.</p>
+        <button class="btn" id="emptyClear">Clear filters</button>
+      </div>
+      <footer class="foot">
+        Photos load live from <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> (free licences, credited on each photo).
+        Rates from <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>.
+        AI by <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a>.
+      </footer>
+    </main>
+  </div>
+
+  <!-- Board -->
+  <div class="board" id="board" hidden>
+    <div class="board-inner" role="dialog" aria-modal="true">
+      <button class="icon-btn close" id="closeBoard" aria-label="Close">&times;</button>
+      <div id="boardBody"></div>
+    </div>
+  </div>
+
+  <!-- AI drawer -->
+  <aside class="ai" id="ai" hidden>
+    <div class="ai-head">
+      <div>
+        <h3>Proposal planner</h3>
+        <small id="aiContext">Ask anything about planning your proposal</small>
+      </div>
+      <button class="icon-btn" id="closeAi" aria-label="Close">&times;</button>
+    </div>
+    <div class="ai-quick" id="aiQuick"></div>
+    <div class="ai-log" id="aiLog"></div>
+    <form class="ai-form" id="aiForm">
+      <textarea id="aiInput" rows="2" placeholder="e.g. Plan a surprise proposal day in Kyoto under $500"></textarea>
+      <button class="btn btn-primary" type="submit">Send</button>
+    </form>
+    <p class="ai-note" id="aiNote"></p>
+  </aside>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
