@@ -284,3 +284,73 @@ body.filters-closed .filters { margin-left: calc(-1 * var(--panel)); }
 .breakdown td small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
 .breakdown tfoot td { background: #f6ecdc; font-weight: 700; color: var(--rose-dark); border-bottom: 0; }
 .bd-note { color: var(--muted); font-size: 12px; margin: 8px 0 0; max-width: 560px; }
+
+/* ================= Responsive ================= */
+html, body { max-width: 100%; overflow-x: hidden; }
+img { max-width: 100%; }
+.content, .board-content, .board-meta > * { min-width: 0; }
+.ideas { grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
+.breakdown { max-width: 100%; }
+.board-inner { width: 100%; }
+
+/* Large screens: keep the grid comfortable and use extra width for more columns */
+@media (min-width: 1500px) {
+  .content { max-width: 1700px; margin: 0 auto; }
+  .masonry { column-width: 300px; }
+}
+@media (min-width: 2000px) {
+  html { font-size: 18px; }
+  .masonry { column-width: 340px; }
+}
+
+/* Tablets */
+@media (max-width: 1100px) {
+  :root { --panel: 250px; }
+  .content { padding: 22px 20px 36px; }
+  .masonry { column-width: 230px; column-gap: 14px; }
+}
+
+/* Phones and small tablets */
+@media (max-width: 860px) {
+  .filters { width: min(86vw, 330px); }
+  .topbar { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
+  .brand { min-width: 0; }
+  .brand span { font-size: 20px; white-space: nowrap; }
+  .topbar-right { margin-left: 0; width: 100%; order: 3; gap: 8px; }
+  .topbar-right .origin { flex: 1; min-width: 0; }
+  .topbar-right .origin select { width: 100%; max-width: none; }
+  .topbar-right .btn-ai { margin-left: auto; padding: 9px 14px; }
+  .btn-ai span:first-child { display: inline; }
+  .filters { top: 0; }
+  .toolbar { flex-wrap: wrap; gap: 8px; }
+  .masonry { column-width: 160px; column-gap: 12px; }
+  .card { margin-bottom: 12px; border-radius: 14px; }
+  .card h3 { font-size: 20px; }
+  .card .body { padding: 12px; }
+  .card .badge { font-size: 10px; padding: 3px 8px; top: 8px; left: 8px; }
+  .card .tags .tag:nth-child(n+3) { display: none; }
+  .board { padding: 0; }
+  .board-inner { border-radius: 0; min-height: 100%; }
+  .board .close { top: 10px; right: 10px; }
+  .board-hero { height: 220px; }
+  .board-hero .overlay { padding: 16px; }
+  .board-content { padding: 16px 14px 28px; }
+  .board-meta { gap: 12px; }
+  .monthbar { grid-template-columns: repeat(6, 1fr); }
+  .monthbar span { font-size: 11px; }
+  .section-title { font-size: 24px; margin: 22px 0 10px; }
+  .breakdown th, .breakdown td { padding: 8px 10px; font-size: 13px; }
+  .pins { column-width: 140px; column-gap: 10px; }
+  .pin { margin-bottom: 10px; border-radius: 10px; }
+  .vendors .btn { padding: 8px 12px; font-size: 13px; }
+  .ai { width: 100%; }
+}
+
+/* Very small phones: single column cards */
+@media (max-width: 420px) {
+  .masonry { column-width: auto; column-count: 1; }
+  .card .tags .tag:nth-child(n+3) { display: inline-block; }
+  .hero h1 { font-size: 34px; }
+  .brand span { font-size: 18px; }
+  .topbar-right select { font-size: 14px; padding: 8px 10px; }
+}
