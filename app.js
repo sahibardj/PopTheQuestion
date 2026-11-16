@@ -21,17 +21,19 @@
     "London, UK": "europe", "Paris, France": "europe",
     "New York, USA": "northam", "San Francisco, USA": "northam", "Toronto, Canada": "northam",
     "Sydney, Australia": "oceania",
+    "Hanoi, Vietnam": "seasia", "Ho Chi Minh City, Vietnam": "seasia", "Manila, Philippines": "seasia",
+    "Baku, Azerbaijan": "mideast", "Amman, Jordan": "mideast",
   };
   const FARES = {
-    southasia: { southasia: 120, eastasia: 650, northam: 1300, europe: 750 },
-    seasia: { southasia: 400, eastasia: 500, northam: 1200, europe: 900 },
-    eastasia: { southasia: 650, eastasia: 150, northam: 1000, europe: 1000 },
-    mideast: { southasia: 300, eastasia: 800, northam: 1300, europe: 500 },
-    europe: { southasia: 700, eastasia: 950, northam: 750, europe: 150 },
-    northam: { southasia: 1300, eastasia: 1000, northam: 250, europe: 700 },
-    oceania: { southasia: 1000, eastasia: 900, northam: 1400, europe: 1600 },
+    southasia: { southasia: 120, seasia: 400, mideast: 300, eastasia: 650, northam: 1300, europe: 750 },
+    seasia: { southasia: 400, seasia: 150, mideast: 600, eastasia: 500, northam: 1200, europe: 900 },
+    eastasia: { southasia: 650, seasia: 400, mideast: 800, eastasia: 150, northam: 1000, europe: 1000 },
+    mideast: { southasia: 300, seasia: 500, mideast: 150, eastasia: 800, northam: 1300, europe: 500 },
+    europe: { southasia: 700, seasia: 800, mideast: 400, eastasia: 950, northam: 750, europe: 150 },
+    northam: { southasia: 1300, seasia: 1200, mideast: 1100, eastasia: 1000, northam: 250, europe: 700 },
+    oceania: { southasia: 1000, seasia: 500, mideast: 1500, eastasia: 900, northam: 1400, europe: 1600 },
   };
-  const DEST_REGION = { Japan: "eastasia", India: "southasia", Canada: "northam", USA: "northam", Greece: "europe", Switzerland: "europe", France: "europe", Italy: "europe" };
+  const DEST_REGION = { Japan: "eastasia", India: "southasia", Canada: "northam", USA: "northam", Greece: "europe", Switzerland: "europe", France: "europe", Italy: "europe", Norway: "europe", Slovenia: "europe", Vietnam: "seasia", Philippines: "seasia", Azerbaijan: "mideast", Jordan: "mideast" };
   // Flights for two, round trip, from the chosen starting point.
   const flightFor = (d) => 2 * FARES[ORIGINS[state.origin]][DEST_REGION[d.country]];
   const totalFor = (d) => [d.budget[0] + flightFor(d), d.budget[1] + flightFor(d)];
@@ -357,8 +359,13 @@
   }
 
   // ---------------- Board ----------------
-  const mapsLink = (vendorKey, d) =>
-    "https://www.google.com/maps/search/" + encodeURIComponent(`${V[vendorKey].search} near ${d.name} ${d.country}`).replace(/%20/g, "+");
+  // Search is anchored to the destination's coordinates so Maps always opens on the right spot.
+  const mapsLink = (vendorKey, d) => {
+    const c = window.COORDS[d.id];
+    return c
+      ? `https://www.google.com/maps/search/${encodeURIComponent(V[vendorKey].search)}/@${c[0]},${c[1]},12z`
+      : "https://www.google.com/maps/search/" + encodeURIComponent(`${V[vendorKey].search} near ${d.name} ${d.country}`).replace(/%20/g, "+");
+  };
 
   const currentBoardId = () => decodeURIComponent(location.hash.slice(1));
 
